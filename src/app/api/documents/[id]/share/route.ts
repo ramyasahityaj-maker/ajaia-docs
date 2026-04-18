@@ -18,16 +18,17 @@ export async function GET(
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const doc = getDocumentById(id);
+  const doc = await getDocumentById(id);
   if (!doc) return NextResponse.json({ error: "Document not found" }, { status: 404 });
   if (doc.ownerId !== payload.userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const shares = getSharesForDocument(id).map((s) => {
-    const user = findUserById(s.userId);
+  const shares = await getSharesForDocument(id);
+  const sharesWithUsers = await Promise.all(shares.map(async (s: any) => {
+    const user = await findUserById(s.userId);
     return { ...s, userName: user?.name, userEmail: user?.email };
-  });
+  }));
 
-  return NextResponse.json({ shares });
+  return NextResponse.json({ shares: sharesWithUsers });
 }
 
 // POST /api/documents/[id]/share — share with a user
@@ -39,7 +40,7 @@ export async function POST(
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const doc = getDocumentById(id);
+  const doc = await getDocumentById(id);
   if (!doc) return NextResponse.json({ error: "Document not found" }, { status: 404 });
   if (doc.ownerId !== payload.userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -50,7 +51,7 @@ export async function POST(
     return NextResponse.json({ error: "Permission must be 'view' or 'edit'" }, { status: 400 });
   }
 
-  const targetUser = findUserByEmail(email);
+  const targetUser = await findUserByEmail(email);
   if (!targetUser) {
     return NextResponse.json({ error: "User not found with that email" }, { status: 404 });
   }
@@ -59,7 +60,7 @@ export async function POST(
     return NextResponse.json({ error: "Cannot share with yourself" }, { status: 400 });
   }
 
-  const share = createShare({
+  const share = await createShare({
     documentId: id,
     userId: targetUser.id,
     permission: permission as "view" | "edit",
@@ -81,14 +82,14 @@ export async function DELETE(
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const doc = getDocumentById(id);
+  const doc = await getDocumentById(id);
   if (!doc) return NextResponse.json({ error: "Document not found" }, { status: 404 });
   if (doc.ownerId !== payload.userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { userId } = await req.json();
   if (!userId) return NextResponse.json({ error: "userId is required" }, { status: 400 });
 
-  const removed = removeShare(id, userId);
+  const removed = await removeShare(id, userId);
   if (!removed) return NextResponse.json({ error: "Share not found" }, { status: 404 });
 
   return NextResponse.json({ success: true });

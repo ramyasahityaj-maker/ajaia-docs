@@ -8,13 +8,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { owned, shared } = getDocumentsForUser(payload.userId);
+  const { owned, shared } = await getDocumentsForUser(payload.userId);
 
   // Attach owner info to shared docs
-  const sharedWithOwner = shared.map((doc) => {
-    const owner = findUserById(doc.ownerId);
+  const sharedWithOwner = await Promise.all(shared.map(async (doc: any) => {
+    const owner = await findUserById(doc.ownerId);
     return { ...doc, ownerName: owner?.name ?? "Unknown" };
-  });
+  }));
 
   return NextResponse.json({ owned, shared: sharedWithOwner });
 }
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Title is required" }, { status: 400 });
   }
 
-  const doc = createDocument({
+  const doc = await createDocument({
     title: title.trim(),
     content: content ?? JSON.stringify({ type: "doc", content: [] }),
     ownerId: payload.userId,

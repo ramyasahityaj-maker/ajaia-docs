@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserFromRequest } from "@/lib/auth";
-import { getDb } from "@/lib/db";
+import { searchUsers } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
   const payload = getUserFromRequest(req);
@@ -13,15 +13,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ users: [] });
   }
 
-  const db = getDb();
-  const users = db.users
-    .filter(
-      (u) =>
-        u.id !== payload.userId &&
-        (u.email.toLowerCase().includes(q) || u.name.toLowerCase().includes(q))
-    )
+  const users = await searchUsers(q);
+  const filteredUsers = users
+    .filter((u: any) => u.id !== payload.userId)
     .slice(0, 5)
-    .map((u) => ({ id: u.id, email: u.email, name: u.name }));
+    .map((u: any) => ({ id: u.id, email: u.email, name: u.name }));
 
-  return NextResponse.json({ users });
+  return NextResponse.json({ users: filteredUsers });
 }

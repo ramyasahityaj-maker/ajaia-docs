@@ -4,7 +4,7 @@ A lightweight collaborative document editor built for the Ajaia LLC TPM assignme
 
 ## Live Demo
 
-> **URL:** [Add deployment URL here]  
+> **URL:** [Add Vercel deployment URL here after deployment]  
 > **Test accounts** (password: `password123`):  
 > `alice@ajaia.com` · `bob@ajaia.com` · `carol@ajaia.com`
 
@@ -91,11 +91,20 @@ scripts/seed.js      # One-time database seed
 
 ## Environment Variables
 
-| Variable | Default |
-|---|---|
-| `JWT_SECRET` | `ajaia-docs-dev-secret-2024` — change in production |
+| Variable | Default | Description |
+|---|---|---|
+| `JWT_SECRET` | `ajaia-docs-dev-secret-2024` | JWT signing secret — change in production |
+| `NEXT_PUBLIC_SUPABASE_URL` | - | Supabase project URL (for production) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | - | Supabase anonymous key (for production) |
 
 ---
+
+## Database
+
+**Development:** JSON file (`./data/db.json`) — auto-created, no setup required  
+**Production:** Supabase PostgreSQL — persistent, scalable
+
+The app automatically switches to Supabase when environment variables are provided.
 
 ## Deployment
 
@@ -114,7 +123,4 @@ docker-compose -f docker-compose.prod.yml up -d
 npm run build && npm start
 ```
 
-**Important:** The JSON database (`./data/db.json`) has an ephemeral filesystem on serverless platforms. For production:
-- **Vercel:** Migrate to Supabase PostgreSQL (free tier available)
-- **Self-hosted:** Use Docker with volume persistence
-- See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed migration steps
+**Database Setup:** The app now uses Supabase PostgreSQL for production persistence. JSON files work for local development but won't persist on serverless platforms like Vercel.

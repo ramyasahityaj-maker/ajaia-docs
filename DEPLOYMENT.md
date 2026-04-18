@@ -2,18 +2,24 @@
 
 ## Overview
 
-This guide covers deploying Ajaia Docs to production. The application is a Next.js 16 app with a JSON file-based database and file uploads.
+This guide covers deploying Ajaia Docs to production. The application is a Next.js 16 app that uses Supabase PostgreSQL for data persistence in production and JSON files for local development.
 
 ---
 
 ## Option 1: Vercel (Recommended for Next.js)
 
 **Pros:** Easiest, native Next.js support, free tier available, auto-scaling  
-**Cons:** JSON database won't persist between deployments (ephemeral filesystem)
+**Cons:** Requires Supabase setup for database persistence
 
 ### Steps
 
-1. **Push to GitHub**
+1. **Set up Supabase Database**
+   - Create a free account at [supabase.com](https://supabase.com)
+   - Click "New Project" and fill in your project details
+   - Wait for the database to be ready (usually 2-3 minutes)
+   - Go to Settings → API to get your project URL and anon key
+
+2. **Push to GitHub**
    ```bash
    git init
    git add .
@@ -21,25 +27,55 @@ This guide covers deploying Ajaia Docs to production. The application is a Next.
    git push origin main
    ```
 
-2. **Deploy to Vercel**
+3. **Deploy to Vercel**
    - Visit [vercel.com](https://vercel.com)
    - Click "Add New → Project"
    - Import your GitHub repository
    - Vercel will auto-detect Next.js configuration
 
-3. **Set Environment Variables**
+4. **Set Environment Variables**
    - In Project Settings → Environment Variables, add:
      ```
      JWT_SECRET=<generate-a-strong-random-string>
+     NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+     NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
      ```
 
-4. **Database Persistence Solution**
-   - For production, migrate to Supabase PostgreSQL (free tier available):
-     - Create a Supabase project at [supabase.com](https://supabase.com)
-     - Add `DATABASE_URL` environment variable pointing to your database
-     - Update `src/lib/db.ts` to use Supabase client instead of JSON file
+5. **Initialize Database Tables**
+   - After deployment, run the database setup:
+     ```bash
+     npm run setup-db
+     ```
+   - Or manually create the tables in Supabase SQL Editor with:
+     ```sql
+     CREATE TABLE users (
+       id TEXT PRIMARY KEY,
+       email TEXT UNIQUE NOT NULL,
+       name TEXT NOT NULL,
+       password_hash TEXT NOT NULL,
+       created_at TIMESTAMP DEFAULT NOW()
+     );
 
-5. **Deploy**
+     CREATE TABLE documents (
+       id TEXT PRIMARY KEY,
+       title TEXT NOT NULL,
+       content TEXT NOT NULL,
+       owner_id TEXT NOT NULL REFERENCES users(id),
+       created_at TIMESTAMP DEFAULT NOW(),
+       updated_at TIMESTAMP DEFAULT NOW()
+     );
+
+     CREATE TABLE shares (
+       id TEXT PRIMARY KEY,
+       document_id TEXT NOT NULL REFERENCES documents(id),
+       user_id TEXT NOT NULL REFERENCES users(id),
+       permission TEXT NOT NULL CHECK (permission IN ('view', 'edit')),
+       created_at TIMESTAMP DEFAULT NOW(),
+       UNIQUE(document_id, user_id)
+     );
+     ```
+
+6. **Deploy**
    - Push changes to GitHub - Vercel will auto-deploy
 
 ---

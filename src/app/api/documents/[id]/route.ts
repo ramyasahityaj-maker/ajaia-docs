@@ -17,23 +17,23 @@ export async function GET(
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const doc = getDocumentById(id);
+  const doc = await getDocumentById(id);
   if (!doc) return NextResponse.json({ error: "Document not found" }, { status: 404 });
 
-  const { access, permission } = canUserAccess(payload.userId, id);
+  const { access, permission } = await canUserAccess(payload.userId, id);
   if (!access) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   // Attach share info if owner
   let shares = null;
   if (permission === "owner") {
-    const rawShares = getSharesForDocument(id);
-    shares = rawShares.map((s) => {
-      const user = findUserById(s.userId);
+    const rawShares = await getSharesForDocument(id);
+    shares = await Promise.all(rawShares.map(async (s: any) => {
+      const user = await findUserById(s.userId);
       return { ...s, userName: user?.name, userEmail: user?.email };
-    });
+    }));
   }
 
-  const owner = findUserById(doc.ownerId);
+  const owner = await findUserById(doc.ownerId);
 
   return NextResponse.json({
     ...doc,
@@ -51,10 +51,10 @@ export async function PATCH(
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const doc = getDocumentById(id);
+  const doc = await getDocumentById(id);
   if (!doc) return NextResponse.json({ error: "Document not found" }, { status: 404 });
 
-  const { access, permission } = canUserAccess(payload.userId, id);
+  const { access, permission } = await canUserAccess(payload.userId, id);
   if (!access || permission === "view") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -66,7 +66,7 @@ export async function PATCH(
   if (content !== undefined) updates.content = content;
   if (title !== undefined && permission === "owner") updates.title = title.trim();
 
-  const updated = updateDocument(id, updates);
+  const updated = await updateDocument(id, updates);
   return NextResponse.json(updated);
 }
 
@@ -78,13 +78,13 @@ export async function DELETE(
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const doc = getDocumentById(id);
+  const doc = await getDocumentById(id);
   if (!doc) return NextResponse.json({ error: "Document not found" }, { status: 404 });
 
   if (doc.ownerId !== payload.userId) {
     return NextResponse.json({ error: "Only the owner can delete a document" }, { status: 403 });
   }
 
-  deleteDocument(id);
+  await deleteDocument(id);
   return NextResponse.json({ success: true });
 }

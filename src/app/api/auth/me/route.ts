@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   if (!payload) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const user = findUserById(payload.userId);
+  const user = await findUserById(payload.userId);
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }

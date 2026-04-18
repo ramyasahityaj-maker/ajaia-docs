@@ -14,13 +14,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });
     }
 
-    const existing = findUserByEmail(email);
+    const existing = await findUserByEmail(email);
     if (existing) {
       return NextResponse.json({ error: "Email already in use" }, { status: 409 });
     }
 
     const passwordHash = await hashPassword(password);
-    const user = createUser({ email, name, passwordHash });
+    const user = await createUser({ email, name, passwordHash });
     const token = signToken({ userId: user.id, email: user.email, name: user.name });
 
     return NextResponse.json({
