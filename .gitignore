@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+.npm
+
+# Build output
+.next/
+out/
+
+# Database (exclude from git — reviewers run seed.js)
+data/
+
+# Env
+.env
+.env.local
+.env*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads
+uploads/
