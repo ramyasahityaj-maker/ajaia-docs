@@ -37,50 +37,47 @@ export interface DB {
 
 // Initialize database tables (run once)
 export async function initDatabase() {
-  // Create users table
-  const { error: usersError } = await supabase.rpc('create_users_table', {
-    sql: `
-      CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY,
-        email TEXT UNIQUE NOT NULL,
-        name TEXT NOT NULL,
-        password_hash TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW()
-      );
-    `
-  });
+  console.log('Note: Database tables should be created manually in Supabase dashboard');
+  console.log('Run the following SQL in your Supabase SQL Editor:');
 
-  // Create documents table
-  const { error: docsError } = await supabase.rpc('create_documents_table', {
-    sql: `
-      CREATE TABLE IF NOT EXISTS documents (
-        id TEXT PRIMARY KEY,
-        title TEXT NOT NULL,
-        content TEXT NOT NULL,
-        owner_id TEXT NOT NULL REFERENCES users(id),
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      );
-    `
-  });
+  const sql = `
+    -- Create users table
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
 
-  // Create shares table
-  const { error: sharesError } = await supabase.rpc('create_shares_table', {
-    sql: `
-      CREATE TABLE IF NOT EXISTS shares (
-        id TEXT PRIMARY KEY,
-        document_id TEXT NOT NULL REFERENCES documents(id),
-        user_id TEXT NOT NULL REFERENCES users(id),
-        permission TEXT NOT NULL CHECK (permission IN ('view', 'edit')),
-        created_at TIMESTAMP DEFAULT NOW(),
-        UNIQUE(document_id, user_id)
-      );
-    `
-  });
+    -- Create documents table
+    CREATE TABLE IF NOT EXISTS documents (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      owner_id TEXT NOT NULL REFERENCES users(id),
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
 
-  if (usersError) console.error('Users table error:', usersError);
-  if (docsError) console.error('Documents table error:', docsError);
-  if (sharesError) console.error('Shares table error:', sharesError);
+    -- Create shares table
+    CREATE TABLE IF NOT EXISTS shares (
+      id TEXT PRIMARY KEY,
+      document_id TEXT NOT NULL REFERENCES documents(id),
+      user_id TEXT NOT NULL REFERENCES users(id),
+      permission TEXT NOT NULL CHECK (permission IN ('view', 'edit')),
+      created_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(document_id, user_id)
+    );
+
+    -- Enable Row Level Security (optional, for additional security)
+    ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE shares ENABLE ROW LEVEL SECURITY;
+  `;
+
+  console.log(sql);
+  return sql;
 }
 
 // Users
