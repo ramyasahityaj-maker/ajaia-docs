@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log
+.next
+.git
+.gitignore
+README.md
+.env
+.env.local
+.env.*.local
+.vercel
+.DS_Store
+*.pem
+.vscode
+.idea
+coverage
+__tests__
+vitest.config.ts

@@ -1,0 +1,20 @@
+Walkthrough Video URL
+=====================
+[Replace this line with your unlisted Loom or YouTube link]
+
+The video should cover (3-5 minutes):
+  1. Login flow + quick demo of the test accounts
+  2. Creating a new document and using the rich text toolbar
+     (bold, italic, underline, headings, lists, blockquote, code block)
+  3. Inline title rename
+  4. Importing a .txt or .md file from the dashboard
+  5. Sharing a document with another user (view vs. edit permission)
+  6. Switching accounts to show the shared document + permission badge
+  7. Revoking access
+  8. Brief walk through of the codebase structure
+  9. Mentioning intentional scope cuts (real-time collab, version history, export)
+
+Recording tips:
+  - Use alice@ajaia.com in window 1, bob@ajaia.com in a private/incognito window
+  - Turn on system audio so toolbar clicks are audible
+  - Loom free tier (5-min limit) is fine; keep it under 5 minutes
